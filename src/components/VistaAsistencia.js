@@ -1,32 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { registerEntrada } from '../services/asistenciaService';
+import { registerInicioAlmuerzo } from '../services/asistenciaService';
+import { registerFinAlmuerzo } from '../services/asistenciaService';
 
 const AttendanceControl = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isLunchStarted, setIsLunchStarted] = useState(false);
+  const [isLunchEnded, setIsLunchEnded] = useState(false);
 
-  // Actualizar la hora cada segundo
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Al cargar el componente, verificar si ya se registró la entrada para hoy
-    const lastEntry = localStorage.getItem('lastEntry');
     const todayDate = new Date().toLocaleDateString();
 
-    if (lastEntry === todayDate) {
+    // Verificar estado de Ingreso
+    if (localStorage.getItem('lastEntry') === todayDate) {
       setIsRegistered(true);
+    }
+
+    // Verificar estado de Inicio Almuerzo
+    if (localStorage.getItem('lastLunchStart') === todayDate) {
+      setIsLunchStarted(true);
+    }
+
+    // Verificar estado de Fin Almuerzo
+    if (localStorage.getItem('lastLunchEnd') === todayDate) {
+      setIsLunchEnded(true);
     }
 
     return () => clearInterval(timer);
   }, []);
 
-  const handleIngreso = async () => {
+  const handleRegistro = async (tipo) => {
     try {
-      // Obtener datos del localStorage
       const userData = JSON.parse(localStorage.getItem('user'));
       const obraData = JSON.parse(localStorage.getItem('obra'));
       const token = localStorage.getItem('token');
@@ -35,7 +46,6 @@ const AttendanceControl = () => {
         throw new Error('No se encontraron los datos necesarios');
       }
 
-      // Obtener coordenadas
       const getCoordenadas = () => {
         return new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(
@@ -59,28 +69,40 @@ const AttendanceControl = () => {
         nombreObra: obraData.nombre,
         centroCosto: obraData.centroCosto,
         ubicacion: coordenadas,
+        tipo, // Diferenciador para el registro
       };
 
-      // Registrar la entrada en el servidor
       await registerEntrada(token, registroData);
 
-      // Actualizar el estado y el mensaje de éxito
-      setSuccess('Ingreso registrado exitosamente');
+      setSuccess(`${tipo} registrado exitosamente`);
       setError('');
 
-      // Guardar la fecha actual en el localStorage
-      const todayDate = new Date().toLocaleDateString();
-      localStorage.setItem('lastEntry', todayDate);
-      setIsRegistered(true);
+ 
+      if (tipo === 'Ingreso') {
+        await registerEntrada(token, registroData);
+        localStorage.setItem('lastEntry', new Date().toLocaleDateString());
+        setIsRegistered(true);
+      } else if (tipo === 'Inicio Almuerzo') {
+        await registerInicioAlmuerzo(token, registroData);
+        localStorage.setItem('lastLunchStart', new Date().toLocaleDateString());
+        setIsLunchStarted(true);
+      } else if (tipo === 'Fin Almuerzo') {
+        await registerFinAlmuerzo(token, registroData);
+        localStorage.setItem('lastLunchEnd', new Date().toLocaleDateString());
+        setIsLunchEnded(true);
+      }
+  
+      setSuccess(`${tipo} registrado exitosamente`);
+      setError('');
     } catch (err) {
-      setError(err.message || 'Error al registrar ingreso');
+      setError(err.message || `Error al registrar ${tipo}`);
       setSuccess('');
     }
   };
+  
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
-      {/* Reloj y Fecha */}
       <div className="text-center mb-8">
         <div className="text-5xl font-bold text-blue-600 tracking-wider">
           {currentTime.toLocaleTimeString()}
@@ -90,15 +112,14 @@ const AttendanceControl = () => {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric',
           })}
         </div>
       </div>
 
-      {/* Botones de Control */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 max-w-md mx-auto">
         <button
-          onClick={handleIngreso}
+          onClick={() => handleRegistro('Ingreso')}
           disabled={isRegistered}
           className={`${
             isRegistered ? 'bg-red-500' : 'bg-emerald-500 hover:bg-emerald-600'
@@ -107,16 +128,22 @@ const AttendanceControl = () => {
           {isRegistered ? 'Ingreso registrado' : 'Ingreso'}
         </button>
         <button
-          disabled
-          className="bg-slate-300 text-white font-semibold py-3 px-6 rounded-lg"
+          onClick={() => handleRegistro('Inicio Almuerzo')}
+          disabled={!isRegistered || isLunchStarted}
+          className={`${
+            isLunchStarted ? 'bg-red-500' : 'bg-yellow-500 hover:bg-yellow-600'
+          } text-white font-semibold py-3 px-6 rounded-lg transition-colors`}
         >
-          Almuerzo
+          {isLunchStarted ? 'Inicio Almuerzo registrado' : 'Inicio Almuerzo'}
         </button>
         <button
-          disabled
-          className="bg-slate-300 text-white font-semibold py-3 px-6 rounded-lg"
+          onClick={() => handleRegistro('Fin Almuerzo')}
+          disabled={!isLunchStarted || isLunchEnded}
+          className={`${
+            isLunchEnded ? 'bg-red-500' : 'bg-blue-500 hover:bg-blue-600'
+          } text-white font-semibold py-3 px-6 rounded-lg transition-colors`}
         >
-          Fin Almuerzo
+          {isLunchEnded ? 'Fin Almuerzo registrado' : 'Fin Almuerzo'}
         </button>
         <button
           disabled
@@ -132,7 +159,6 @@ const AttendanceControl = () => {
         </button>
       </div>
 
-      {/* Mensajes de éxito/error */}
       {error && (
         <div className="mt-6 p-3 bg-red-100 text-red-700 rounded-lg text-center">
           {error}
