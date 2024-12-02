@@ -13,6 +13,8 @@ import PrivateRoute from './components/PrivateRoute'; // Importa la ruta privada
 import "./App.css"
 import ListAsistencias from './components/ListAsitenciaEntrada';
 import ReporteAsistencias from './components/Reportes';
+import Dashboard from './components/dashboard'; 
+
 
 
 
@@ -31,6 +33,7 @@ function App() {
           <Route path="/obra/listar" element={<PrivateRoute><ListObra /></PrivateRoute>} /> 
           <Route path="/asistencia/listar/entrada" element={<PrivateRoute><ListAsistencias /></PrivateRoute>} /> 
           <Route path="/asistencias/reportes" element={<PrivateRoute><ReporteAsistencias /></PrivateRoute>} /> 
+          <Route path="/asistencias/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} /> 
           <Route path="/obra/seleccionar" element={<PrivateRoute><ObraSelector /></PrivateRoute>} /> 
           
           {/* Añade las demás rutas según sea necesario */}
