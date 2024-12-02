@@ -99,13 +99,7 @@ const Navbar = () => {
                 >
                   <span>• Ver Asistencias</span>
                 </Link>
-                <Link
-                  to="/asistencias/registrar"
-                  className="flex items-center gap-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors text-sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span>• Registrar Asistencia</span>
-                </Link>
+              
                 <Link
                   to="/asistencias/reportes"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors text-sm"

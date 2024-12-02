@@ -12,6 +12,7 @@ import Welcome from './components/Welcome'; // Importar el componente de bienven
 import PrivateRoute from './components/PrivateRoute'; // Importa la ruta privada
 import "./App.css"
 import ListAsistencias from './components/ListAsitenciaEntrada';
+import ReporteAsistencias from './components/Reportes';
 
 
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="/obra/registrar" element={<PrivateRoute><RegisterObra /></PrivateRoute>} /> 
           <Route path="/obra/listar" element={<PrivateRoute><ListObra /></PrivateRoute>} /> 
           <Route path="/asistencia/listar/entrada" element={<PrivateRoute><ListAsistencias /></PrivateRoute>} /> 
+          <Route path="/asistencias/reportes" element={<PrivateRoute><ReporteAsistencias /></PrivateRoute>} /> 
           <Route path="/obra/seleccionar" element={<PrivateRoute><ObraSelector /></PrivateRoute>} /> 
           
           {/* Añade las demás rutas según sea necesario */}
